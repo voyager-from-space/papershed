@@ -1,0 +1,9 @@
+# papershed v1 spec
+
+Sharpened (what a careful author would do before posting a source bundle): start from the raw zip bytes, not a summary; strip comments with a real state machine (escapes, verbatim, comment env, \iffalse); walk the actual reference graph from the \documentclass file; read EXIF/PNG chunks at the byte level; prove it by unzipping the output and grepping it, not by trusting the page.
+
+1. Who/job: an author about to post a LaTeX source zip (for arXiv uploads) drops it in the page and gets a cleaned zip back, in the tab, no account. Done when: one drop -> report + download link, no network requests besides the page's own files.
+2. Clean: % comments, comment env and \iffalse blocks are gone; \%, verbatim/lstlisting/minted and a line-joining trailing % survive. Done when: verify greps the unzipped fixture output for every planted comment string (0 hits) and finds the escaped/verbatim strings (all present).
+3. Prune: unreferenced files and build junk (aux/log/__MACOSX/.git/.DS_Store...) are removed; referenced .tex/.bib/.bbl/.sty/.cls/figures stay. Done when: the unzipped output has exactly the expected used files and none of the unused/junk ones.
+4. Leaks: JPEG EXIF (GPS) and PNG text chunks are stripped, PDF figure Info/XMP blanked in place where uncompressed; text files are heuristically scanned for credentials, private cloud links, emails and \todo leftovers. Done when: output JPEG has no APP1/GPS, output PNG has no tEXt/iTXt/zTXt/eXIf, and the on-page report lists the fake credential, the Dropbox/Drive link and the GPS image.
+5. Ship: deterministic zip with CLEAN-REPORT.txt, real byte counts on page, works at 390 px wide without horizontal scroll, live on GitHub Pages, denylist grep 0 hits. Done when: scripts/verify.mjs is green locally and against the live URL.

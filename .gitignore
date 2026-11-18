@@ -1,0 +1,7 @@
+node_modules
+.identity-denylist
+decisions.tsv
+screenshots/
+test/out/
+proto/
+.DS_Store
