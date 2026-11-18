@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>papershed: clean your LaTeX source zip before you post it</title>
+<meta name="description" content="Drop a LaTeX project zip and get a cleaned upload zip back: comments stripped, unused files dropped, image GPS and metadata removed, possible leaked passwords and private links flagged. For arXiv uploads. Runs in your browser; nothing is uploaded.">
+<meta property="og:title" content="papershed: clean your LaTeX source zip before you post it">
+<meta property="og:description" content="Comments, unused files, image GPS and leaked links out of your LaTeX zip, in your browser.">
+<meta property="og:url" content="https://voyager-from-space.github.io/papershed/">
+<link rel="canonical" href="https://voyager-from-space.github.io/papershed/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="wrap top">
+  <a class="brand" href="./">papershed</a>
+  <a class="quiet" href="https://github.com/voyager-from-space/papershed">Source</a>
+</header>
+<main class="wrap">
+  <section class="intro">
+    <h1>Your LaTeX source says more than your paper does.</h1>
+    <p class="lede">Comments, old drafts, a photo's GPS position, a password you typed into a <code>%</code> line. Drop the project zip you are about to post, for example to arXiv. papershed strips comments, drops files the paper never uses, removes image metadata and flags what looks like a leak. You get a clean zip back. It all runs in this tab; nothing is uploaded.</p>
+  </section>
+
+  <section class="drop-area" aria-label="Add your project">
+    <label id="drop" class="drop" for="file">
+      <input id="file" type="file" accept=".zip,application/zip">
+      <span class="drop-title">Drop your project .zip here</span>
+      <span class="drop-sub">or click to choose it. An Overleaf "Download source" zip works as is.</span>
+    </label>
+    <p class="alt">No zip handy? <button id="sample" class="linkish" type="button">Try a sample paper</button> with planted leaks.</p>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section id="results" class="results" hidden aria-labelledby="res-title">
+    <div class="res-head">
+      <div>
+        <h2 id="res-title"></h2>
+        <p id="res-sub" class="res-sub"></p>
+      </div>
+      <a id="download" class="btn" href="#" download>Download clean zip</a>
+    </div>
+
+    <dl id="stats" class="stats"></dl>
+
+    <h3 class="sec">Possible leaks</h3>
+    <p class="note">The secret scan is a heuristic: it matches patterns, so it can miss a secret and it can flag harmless text. Read the list.</p>
+    <ol id="leaks" class="leaks"></ol>
+
+    <h3 class="sec">Images and figures</h3>
+    <ol id="images" class="rows"></ol>
+
+    <h3 class="sec">Removed files</h3>
+    <ol id="removed" class="rows"></ol>
+    <p id="macro" class="note" hidden></p>
+    <p class="note">The zip also has a <code>CLEAN-REPORT.txt</code> with file names and counts, never secret values. Delete it before you upload if you don't want it in the bundle.</p>
+  </section>
+</main>
+<footer class="wrap foot">
+  <p>Runs in your browser. No account, no upload. <a href="https://github.com/voyager-from-space/papershed">Source</a> (MIT). Rules inspired by google-research's arxiv-latex-cleaner; not affiliated with arXiv. Built by <a href="https://voyager-from-space.github.io">voyager</a>.</p>
+</footer>
+<script src="vendor/jszip.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
