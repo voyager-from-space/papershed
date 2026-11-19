@@ -37,8 +37,18 @@ await page.waitForTimeout(4000);                  // result: bytes in/out, leaks
 await glide(330); await page.waitForTimeout(2500); // GPS photo, PDF metadata, password
 await glide(330); await page.waitForTimeout(2500); // key, token, cloud links
 await glide(330); await page.waitForTimeout(2000);
-await glide(Math.max(0, (await page.evaluate(() => document.getElementById("images").offsetTop)) - (await page.evaluate(() => window.scrollY)) - 60));
-await page.waitForTimeout(2500);                  // images before/after, removed files
+const toId = (id, pad = 90) => page.evaluate(([id, pad]) => window.scrollTo(0, document.getElementById(id).getBoundingClientRect().top + window.scrollY - pad), [id, pad]);
+const ease = async (id, pad = 90) => { const dy = await page.evaluate(([id, pad]) => document.getElementById(id).getBoundingClientRect().top - pad, [id, pad]); await glide(dy, 36); };
+await ease("abs-sum", 110); await page.waitForTimeout(4500);   // abstract check against arXiv's rules
+await page.click("#abs-paste");
+await page.keyboard.type("We study caf\u00e9 queues. Abstract: results are ~10% better.", { delay: 45 });
+await page.waitForTimeout(3000);                                // pasted text checked the same way
+await ease("size-sum", 110); await page.waitForTimeout(4500);   // size against arXiv's limit, with sources
+await ease("build-btn", 200); await page.waitForTimeout(1200);
+await page.click("#build-btn");                                 // lazy-loads TeX Live, builds in the tab
+await page.waitForSelector("#build-out:not([hidden]) [data-verdict]", { timeout: 300000 });
+await page.waitForTimeout(3500);
+await ease("images", 90); await page.waitForTimeout(2500);
 await glide(300); await page.waitForTimeout(1800);
 await page.evaluate(() => window.scrollTo(0, document.getElementById("results").offsetTop - 16));
 await page.waitForTimeout(1200);
