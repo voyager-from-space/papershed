@@ -1,6 +1,8 @@
 // papershed cleaner. Pure functions over { path, bytes } files; runs in the browser and in Node.
 // Our own implementation of the usual arXiv clean-up rules (arxiv-latex-cleaner was the inspiration; no code copied).
 
+import { abstractReport } from './checks.js';
+
 const dec = new TextDecoder('utf-8'), enc = new TextEncoder();
 const latin1 = (b) => { let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return s; };
 
@@ -278,7 +280,9 @@ export function scrubPdf(b) {
   }
   const x0 = s.indexOf('<x:xmpmeta'), x1 = s.indexOf('</x:xmpmeta>');
   if (x0 >= 0 && x1 > x0) { out.fill(0x20, x0, x1 + 12); found.xmp = true; }
-  if (/\/ObjStm/.test(s) && !found.keys.length) found.compressedOnly = true;
+  // metadata kept in compressed object streams or compressed XMP cannot be blanked in place (offsets would move)
+  if (/\/ObjStm\b/.test(s) || /\/Type\s*\/XRef\b/.test(s) || (/\/Metadata\b/.test(s) && !found.xmp)) found.deep = true;
+  if (found.deep && !found.keys.length) found.compressedOnly = true;
   return { bytes: out, found: { ...found, keys: [...new Set(found.keys)] } };
 }
 
@@ -379,6 +383,7 @@ export async function cleanProject(rawFiles, opts = {}) {
     if (keep.has(f.path)) kept.push(f);
     else removed.push({ path: f.path, size: f.bytes.length, why: 'not referenced from ' + (main || 'the main file') });
   }
+  report.abstract = abstractReport(kept, main);
   for (const l of report.leaks) {
     const f = kept.find((k) => k.path === l.file);
     l.status = !f ? 'removed with the file' : l.inComment || !dec.decode(f.bytes).includes(l.match) ? 'removed with a comment' : 'still in the file';
@@ -410,7 +415,16 @@ export async function cleanProject(rawFiles, opts = {}) {
       const s = scrubPdf(f.bytes);
       if (!s) continue;
       f.bytes = s.bytes;
-      if (s.found.keys.length || s.found.xmp || s.found.compressedOnly) report.pdfs.push({ path: f.path, keys: s.found.keys, xmp: s.found.xmp, compressedOnly: s.found.compressedOnly });
+      const entry = { path: f.path, keys: s.found.keys, xmp: s.found.xmp, compressedOnly: s.found.compressedOnly };
+      if (s.found.deep && opts.deepPdf) {
+        progress(`Rewriting ${f.path} to remove its metadata`);
+        const d = await opts.deepPdf(f.bytes);
+        if (d && d.bytes) {
+          Object.assign(entry, { keys: [...new Set([...entry.keys, ...d.found.keys])], xmp: entry.xmp || d.found.xmp, compressedOnly: false, deep: true, before, after: d.bytes.length });
+          f.bytes = d.bytes;
+        } else if (d && d.error) entry.deepError = d.error;
+      }
+      if (entry.keys.length || entry.xmp || entry.compressedOnly) report.pdfs.push(entry);
     }
   }
   const afterBytes = kept.reduce((n, f) => n + f.bytes.length, 0);
@@ -427,13 +441,14 @@ export function reportText(name, res, zipBefore) {
   L.push(`project bytes (uncompressed): ${res.beforeBytes} -> ${res.afterBytes}${zipBefore ? `; input zip ${zipBefore} bytes` : ''}`);
   L.push(`main file: ${res.main || 'not found (nothing was pruned)'}`);
   L.push(`comments removed: ${r.comments} % comments, ${r.commentEnvs} comment environments, ${r.iffalse} \\iffalse blocks (${r.linesDropped} lines dropped)`);
+  if (r.abstract) L.push(r.abstract.found ? `abstract (arXiv form): ${r.abstract.chars} of ${r.abstract.max} characters in ${r.abstract.path}; ${r.abstract.problems} would be refused, ${r.abstract.advice} requests from arXiv's page` : 'abstract (arXiv form): none found in the kept files');
   L.push('');
   L.push(`files removed (${removed.length}):`);
   for (const f of removed) L.push(`- ${f.path} (${f.size} bytes): ${f.why}`);
   L.push('');
   L.push('images:');
   for (const i of r.images) L.push(`- ${i.path}: ${i.before} -> ${i.after} bytes${i.meta.length ? `; stripped ${i.meta.join(', ')}` : ''}${i.gps ? '; HAD GPS LOCATION (removed)' : ''}${i.resized ? `; resized ${i.resized}` : ''}`);
-  for (const p of r.pdfs) L.push(`- ${p.path}: ${p.compressedOnly ? 'metadata is compressed, not scrubbed; re-export this figure' : `blanked ${[...p.keys, p.xmp ? 'XMP' : ''].filter(Boolean).join(', ')}`}`);
+  for (const p of r.pdfs) L.push(`- ${p.path}: ${p.compressedOnly ? `metadata is compressed, not scrubbed${p.deepError ? ` (${p.deepError})` : ''}; re-export this figure` : `${p.deep ? 'removed (file rewritten)' : 'blanked'} ${[...p.keys, p.xmp ? 'XMP' : ''].filter(Boolean).join(', ')}`}`);
   L.push('');
   L.push('possible leaks (heuristic scan; it can miss things and flag harmless text):');
   for (const l of r.leaks) L.push(`- [${l.kind}] ${l.label} at ${l.file}:${l.line}, ${l.status}`);

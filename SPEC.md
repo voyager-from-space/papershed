@@ -1,4 +1,4 @@
-# papershed v1 spec
+# papershed spec (v1, then v1.1)
 
 Sharpened (what a careful author would do before posting a source bundle): start from the raw zip bytes, not a summary; strip comments with a real state machine (escapes, verbatim, comment env, \iffalse); walk the actual reference graph from the \documentclass file; read EXIF/PNG chunks at the byte level; prove it by unzipping the output and grepping it, not by trusting the page.
 
@@ -7,3 +7,10 @@ Sharpened (what a careful author would do before posting a source bundle): start
 3. Prune: unreferenced files and build junk (aux/log/__MACOSX/.git/.DS_Store...) are removed; referenced .tex/.bib/.bbl/.sty/.cls/figures stay. Done when: the unzipped output has exactly the expected used files and none of the unused/junk ones.
 4. Leaks: JPEG EXIF (GPS) and PNG text chunks are stripped, PDF figure Info/XMP blanked in place where uncompressed; text files are heuristically scanned for credentials, private cloud links, emails and \todo leftovers. Done when: output JPEG has no APP1/GPS, output PNG has no tEXt/iTXt/zTXt/eXIf, and the on-page report lists the fake credential, the Dropbox/Drive link and the GPS image.
 5. Ship: deterministic zip with CLEAN-REPORT.txt, real byte counts on page, works at 390 px wide without horizontal scroll, live on GitHub Pages, denylist grep 0 hits. Done when: scripts/verify.mjs is green locally and against the live URL.
+
+## v1.1: the four features cut from v1 (Thu 19 Nov 2026)
+
+6. Abstract: the report finds the abstract in the kept files and checks it against arXiv's metadata page (https://info.arxiv.org/help/prep.html): 1,920 characters, ASCII only, no leading "Abstract", the TeX-isms and font commands the page names. Nothing is invented: rules that are not arXiv's are labelled "papershed note". Done when: the count equals an independent count of the unzipped output, 1,920 passes and 1,921 is a problem, and every rule has a test.
+7. Compile: a button builds the cleaned zip in a worker with BusyTeX from maketitle-assets, loaded only on click. Done when: the sample builds and the built PDF opens in poppler with the right page count and text; a project that breaks only after cleaning is reported as such, one that never built is not blamed on cleaning; nothing from the compile code or TeX Live is requested before the click.
+8. PDF metadata in compressed streams: Info and XMP are removed, not blanked. Done when: planted strings that raw grep cannot see are found by inflating the input, 0 remain after cleaning, poppler opens and renders the result, and an unreadable PDF is left untouched and reported.
+9. Size: the report checks the zip and the unpacked size against 50,000,000 bytes (arXiv's support page), lists figure files above 2,000,000 bytes (a suggestion on that page) and images above 34 megapixels (https://info.arxiv.org/help/sizes.html). Done when: a 52 MB upload is reported over, a 36-megapixel PNG is named and reported resized, and the page shows the real downloaded byte count.

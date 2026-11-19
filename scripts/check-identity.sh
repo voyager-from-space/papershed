@@ -7,8 +7,9 @@ cd "$(dirname "$0")/.." || exit 2
 LIST=.identity-denylist
 [ -f "$LIST" ] || { echo "no $LIST found; create it locally (one forbidden string per line)"; exit 2; }
 n=$(grep -c . "$LIST")
-# 1) every file in the working tree (tracked or not), text and binary
-tree=$(grep -rniaF -f "$LIST" --exclude="$LIST" --exclude-dir=node_modules --exclude-dir=.git . 2>/dev/null | cut -c1-200)
+# 1) every file git would publish or could publish (tracked plus untracked and not ignored),
+#    text and binary. gitignored downloads (media/, spike/models/) are never published.
+tree=$(git ls-files -z -co --exclude-standard | xargs -0 grep -niaF -f "$LIST" 2>/dev/null | cut -c1-200)
 # 2) exactly what git would publish
 tracked=""
 if git rev-parse --git-dir >/dev/null 2>&1; then

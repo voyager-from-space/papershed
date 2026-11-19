@@ -4,12 +4,14 @@
 Every secret, link, name and email here is invented and obviously fake.
 AKIAIOSFODNN7EXAMPLE is the documented example key from AWS's own docs.
 """
-import io, random, zipfile, os, shutil
+import io, random, zipfile, os, shutil, sys, importlib.util
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 from PIL.TiffImagePlugin import IFDRational
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
+_spec = importlib.util.spec_from_file_location("make_pdf_fixture", os.path.join(os.path.dirname(__file__), "make-pdf-fixture.py"))
+make_pdf_fixture = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(make_pdf_fixture)
 OUT = os.path.join(ROOT, "test/fixtures/sample-paper.zip")
 SITE = os.path.join(ROOT, "site/sample/sample-paper.zip")
 rng = random.Random(7)
@@ -17,8 +19,9 @@ rng = random.Random(7)
 MAIN = r"""\documentclass[11pt]{article}
 \usepackage{graphicx}
 \usepackage{listings}
-\usepackage{comment}
-\usepackage{todonotes}
+\usepackage{verbatim}
+\usepackage{url}
+\newcommand{\todo}[1]{\textbf{[#1]}}
 \usepackage{mystyle}
 \graphicspath{{figures/}}
 % TODO: answer reviewer 2 before the camera-ready
@@ -28,6 +31,10 @@ MAIN = r"""\documentclass[11pt]{article}
 \author{A. N. Author}
 \begin{document}
 \maketitle
+\begin{abstract}
+We study “planted” leaks in a sample paper, with fake data~\cite{fake2024}. The point of this made-up abstract is to give the
+arXiv checks something to read: it has curved quotes, a tie and a citation, all of which arXiv's form does not like.
+\end{abstract}
 We cut the error by 12\% on the benchmark. % PLANTED-INLINE: the old number was 9\%
 Raw data: \url{https://www.dropbox.com/s/fakeabc123/data.zip?dl=0}.
 \input{sections/intro}
@@ -37,6 +44,7 @@ Raw data: \url{https://www.dropbox.com/s/fakeabc123/data.zip?dl=0}.
 \end{figure}
 \includegraphics[width=.5\linewidth]{pipeline.png}
 \includegraphics[width=.5\linewidth]{plot}
+\includegraphics[width=.4\linewidth]{compressed}
 \begin{lstlisting}
 x = 5 % KEEP-LSTLISTING-PERCENT
 \end{lstlisting}
@@ -159,6 +167,7 @@ def main():
         (P + "figures/field-site.jpg", jpeg_with_gps()),
         (P + "figures/pipeline.png", png_with_text()),
         (P + "figures/plot.pdf", pdf_with_info()),
+        (P + "figures/compressed.pdf", make_pdf_fixture.build("PLANTED-COMPRESSED-META")),
         (P + "figures/unused-photo.jpg", plain_jpeg(1600, 1000)),
         (P + "figures/scratch.png", plain_png(400, 300)),
         (P + "notes.txt", NOTES.encode()),
