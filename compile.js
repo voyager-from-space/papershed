@@ -119,7 +119,7 @@ export class Check {
   constructor({ onStatus = () => {}, onNet = () => {} } = {}) { this.onStatus = onStatus; this.onNet = onNet; this.engine = null; this.stopped = false; }
   async start() {
     const t0 = performance.now();
-    this.engine = new Engine(this.onNet, (m) => { const d = /^(?:Preparing|Downloading data)\.\.\. \((\d+)\/(\d+)\)$/.exec(m); if (d) this.onStatus(`Getting TeX Live (${d[1]} of ${d[2]} files)`); });
+    this.engine = new Engine(this.onNet, (m) => { const d = /^(?:Preparing|Downloading data)\.\.\. \((\d+)\/(\d+)\)$/.exec(m); if (d) this.onStatus(`Loading TeX Live, ${Math.min(100, Math.round((Number(d[1]) / Number(d[2])) * 100))}%`); });
     this.onStatus('Starting TeX in this tab');
     await this.engine.init();
     this.initMs = Math.round(performance.now() - t0);
