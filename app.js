@@ -141,8 +141,8 @@ function renderSize(rawFiles, zipBytes, res, blob) {
   const s = sizeReport({ files: strip(rawFiles), zipBytes }, { files: res.files, zipBytes: blob.size });
   const rows = [];
   const row = (p, b, why, cls) => { const li = el('li', 'row'); if (cls) li.dataset.row = cls; li.append(el('span', 'p', p), el('span', 'b mono', b), el('span', 'why', why)); rows.push(li); };
-  row('The zip you upload', `${n0(s.after.zip)} bytes`, `${s.after.zipVerdict === 'over' ? 'Over' : 'Under'} arXiv\u2019s 50,000,000. It was ${n0(s.before.zip)} bytes.`, 'zip');
-  row('Unpacked', `${n0(s.after.unpacked)} bytes`, `${s.after.unpackedVerdict === 'over' ? 'Over' : 'Under'} 50,000,000. It was ${n0(s.before.unpacked)} bytes.`, 'unpacked');
+  row('The zip you upload', `${n0(s.after.zip)} bytes`, `${s.after.zipVerdict === 'over' ? 'Over' : 'Under'} arXiv\u2019s 50,000,000. Before cleaning: ${n0(s.before.zip)} bytes.`, 'zip');
+  row('Unpacked', `${n0(s.after.unpacked)} bytes`, `${s.after.unpackedVerdict === 'over' ? 'Over' : 'Under'} 50,000,000. Before cleaning: ${n0(s.before.unpacked)} bytes.`, 'unpacked');
   for (const f of s.after.bigFiles) row(f.path, `${n0(f.bytes)} bytes`, 'arXiv suggests 2,000,000 bytes or less per figure file. A suggestion, not a limit.', 'bigfile');
   for (const f of s.after.bigImages) row(f.path, `${f.mp.toFixed(1)} megapixels`, 'arXiv warns about images above 34 megapixels.', 'bigimage');
   for (const f of s.before.bigImages) if (!s.after.bigImages.some((x) => x.path === f.path)) row(f.path, `${f.mp.toFixed(1)} megapixels`, 'Above arXiv\u2019s 34 megapixel warning in your original. papershed resized it.', 'bigimage-fixed');

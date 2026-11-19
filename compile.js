@@ -1,6 +1,6 @@
 // "Does the cleaned zip still build?" Compiles the project in the browser with BusyTeX (TeX Live in WebAssembly, AGPL-3.0, from the
 // maketitle-assets repository) in a Web Worker. Loaded only when the user asks for the check, because the first run downloads
-// TeX Live (about 167 MB, then kept in the browser's storage). Nothing is uploaded: the files go from this page to the worker.
+// TeX Live (about 177 MB, then kept in the browser's storage). Nothing is uploaded: the files go from this page to the worker.
 import { isJunk, normalizePaths, isText, stripComments } from './clean.js';
 
 const dec = new TextDecoder();
