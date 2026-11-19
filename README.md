@@ -2,6 +2,8 @@
 
 Clean a LaTeX source zip before you post it, for example to arXiv. Drop the zip in the page and get a cleaned upload zip back, plus a report of what was removed and what looked like a leak. It runs in your browser tab. Nothing is uploaded, and there is no account.
 
+papershed is step 2 of a small route: [slim the project](https://texdiet.vercel.app/) (texdiet), clean it before you post it (papershed), [open an arXiv paper's source](https://maketitle.vercel.app/) (maketitle). Each tool works on its own.
+
 Live: https://voyager-from-space.github.io/papershed/
 
 ## What it does
