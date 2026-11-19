@@ -40,9 +40,11 @@ await glide(330); await page.waitForTimeout(2000);
 const toId = (id, pad = 90) => page.evaluate(([id, pad]) => window.scrollTo(0, document.getElementById(id).getBoundingClientRect().top + window.scrollY - pad), [id, pad]);
 const ease = async (id, pad = 90) => { const dy = await page.evaluate(([id, pad]) => document.getElementById(id).getBoundingClientRect().top - pad, [id, pad]); await glide(dy, 36); };
 await ease("abs-sum", 110); await page.waitForTimeout(4500);   // abstract check against arXiv's rules
+await ease("abs-paste", 150); await page.waitForTimeout(600);
 await page.click("#abs-paste");
 await page.keyboard.type("We study caf\u00e9 queues. Abstract: results are ~10% better.", { delay: 45 });
-await page.waitForTimeout(3000);                                // pasted text checked the same way
+await page.waitForTimeout(800);
+await glide(160, 16); await page.waitForTimeout(3500);          // pasted text checked the same way
 await ease("size-sum", 110); await page.waitForTimeout(4500);   // size against arXiv's limit, with sources
 await ease("build-btn", 200); await page.waitForTimeout(1200);
 await page.click("#build-btn");                                 // lazy-loads TeX Live, builds in the tab
